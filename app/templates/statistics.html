@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>There is {{current_user.username}} statistics</h1>
+
+<ol>
+    {% for i in response %}
+    <li>{{ i["word"] }} </li>
+    {% endfor %}
+</ol>
+
+
+{% endblock %}
