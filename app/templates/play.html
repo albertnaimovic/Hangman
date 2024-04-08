@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Hangman Game</h1>
+<p>Current word: {{ current_word }}</p>
+<p>Wrong attempts left: {{ wrong_attempts }}</p>
+<p>All attempts left: {{ all_attempts }}</p>
+{% if (all_attempts == 0 or wrong_attempts == 0)%}
+<p>Game over!</p>
+<form method="POST">
+    <input type="submit" value="Play Again">
+</form>
+
+{% else %}
+<form method="POST">
+    <label for="letter">Enter a letter:</label>
+    <input type="text" id="letter" name="letter" maxlength="1" required>
+    <input type="submit" value="Submit">
+</form>
+{% endif %}
+
+{% endblock %}

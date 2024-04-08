@@ -13,6 +13,7 @@ from flask_login import (
     login_required,
 )
 import forms
+from game_backend import hangman, secret_word
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
@@ -103,6 +104,37 @@ def statistics():
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+current_word = "_" * len(secret_word)
+wrong_attempts = 7
+all_attempts = 11
+
+
+@app.route("/play", methods=["GET", "POST"])
+@login_required
+def play_game():
+    global current_word, wrong_attempts, all_attempts
+    if request.method == "POST":
+        if wrong_attempts > 0 and current_word != secret_word:
+            letter = request.form["letter"]
+            current_word, wrong_attempts, all_attempts = hangman(
+                secret_word,
+                current_word,
+                letter,
+                wrong_attempts,
+                all_attempts,
+            )
+        else:
+            current_word = "_" * len(secret_word)
+            wrong_attempts = 6
+            all_attempts = 10
+    return render_template(
+        "play.html",
+        current_word=current_word,
+        wrong_attempts=wrong_attempts,
+        all_attempts=all_attempts,
+    )
 
 
 if __name__ == "__main__":
