@@ -3,21 +3,47 @@
 {% block content %}
 
 <h1>Hangman Game</h1>
-<p>Current word: {{ current_word }}</p>
-<p>Wrong attempts left: {{ wrong_attempts }}</p>
-<p>All attempts left: {{ all_attempts }}</p>
-{% if (all_attempts == 0 or wrong_attempts == 0)%}
-<p>Game over!</p>
-<form method="POST">
-    <input type="submit" value="Play Again">
-</form>
-
-{% else %}
-<form method="POST">
+<p>{{ user_word }}</p>
+<p>Attempts left: {{ attempts_left }}</p>
+<p>Wrong attempts left: {{ wrong_attempts_left }}</p>
+<form id="hangmanForm" action="/play" method="post">
     <label for="letter">Enter a letter:</label>
     <input type="text" id="letter" name="letter" maxlength="1" required>
-    <input type="submit" value="Submit">
+    <button type="submit" id="submitButton">Submit</button>
 </form>
-{% endif %}
+<p></p>
+<div>
+    {% for letter in 'abcdefghijklmnopqrstuvwxyz' %}
+    {% if letter in used_letters %}
+    <button class="used letterButton">{{ letter }}</button>
+    {% else %}
+    <button class="unused letterButton">{{ letter }}</button>
+    {% endif %}
+    {% endfor %}
+</div>
+
+<style>
+    .used {
+        background-color: red;
+        color: white;
+    }
+</style>
+
+<script>
+    // sita pats susigooglinau
+    document.getElementById("letter").focus();
+    document.getElementById("letter").select();
+
+
+    // o su situo padejo chatGPT nes tiek man jau per daug :) 
+    var letterButtons = document.getElementsByClassName("letterButton");
+    for (var i = 0; i < letterButtons.length; i++) {
+        letterButtons[i].addEventListener("click", function () {
+            var letter = this.textContent;
+            document.getElementById("letter").value = letter;
+            document.getElementById("submitButton").click();
+        });
+    }
+</script>
 
 {% endblock %}

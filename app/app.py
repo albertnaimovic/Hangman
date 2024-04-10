@@ -1,6 +1,4 @@
 import os
-from pymongo.collection import Collection
-from mongo_db import collection
 from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -13,7 +11,7 @@ from flask_login import (
     login_required,
 )
 import forms
-from game_backend import hangman, secret_word
+from game_backend import Hangman
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
@@ -96,9 +94,9 @@ def account():
 @app.route("/statistics")
 @login_required
 def statistics():
-    query = {}
-    response = collection.find(query, {"_id": 0})
-    return render_template("statistics.html", title="Statistics", response=response)
+    return render_template(
+        "statistics.html", title="Statistics", response="Cia bus statistika"
+    )
 
 
 @app.route("/")
@@ -106,35 +104,38 @@ def index():
     return render_template("index.html")
 
 
-current_word = "_" * len(secret_word)
-wrong_attempts = 7
-all_attempts = 11
+def create_new_game():
+    return Hangman()
+
+
+hangman_game = create_new_game()
 
 
 @app.route("/play", methods=["GET", "POST"])
-@login_required
-def play_game():
-    global current_word, wrong_attempts, all_attempts
+def play():
+    global hangman_game
+
     if request.method == "POST":
-        if wrong_attempts > 0 and current_word != secret_word:
-            letter = request.form["letter"]
-            current_word, wrong_attempts, all_attempts = hangman(
-                secret_word,
-                current_word,
-                letter,
-                wrong_attempts,
-                all_attempts,
-            )
-        else:
-            current_word = "_" * len(secret_word)
-            wrong_attempts = 6
-            all_attempts = 10
-    return render_template(
-        "play.html",
-        current_word=current_word,
-        wrong_attempts=wrong_attempts,
-        all_attempts=all_attempts,
-    )
+        letter = request.form["letter"]
+        game_result = hangman_game.take_turn(letter)
+        print(game_result)
+        if game_result:
+            return render_template("result.html", result=game_result)
+        return render_template(
+            "play.html",
+            user_word=hangman_game.display_word(),
+            attempts_left=hangman_game.all_attempts,
+            wrong_attempts_left=hangman_game.wrong_attempts,
+            used_letters=hangman_game.used_letters,
+        )
+    elif request.method == "GET":
+        hangman_game = create_new_game()
+        return render_template(
+            "play.html",
+            user_word=hangman_game.display_word(),
+            attempts_left=hangman_game.all_attempts,
+            wrong_attempts_left=hangman_game.wrong_attempts,
+        )
 
 
 if __name__ == "__main__":

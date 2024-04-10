@@ -5,7 +5,6 @@ from typing import Dict
 from words_list import words_list
 
 
-
 def connect_to_mongodb(host: str, port: int, db_name: str) -> Database:
     client = MongoClient(host, port)
     database = client[db_name]
