@@ -26,9 +26,9 @@ class Hangman:
 
     def get_game_result(self) -> Optional[str]:
         if self.secret_word == self.user_word:
-            return "You've won !!!"
+            return f"You've won !!! Secret word: {self.secret_word}"
         elif self.all_attempts == 0 or self.wrong_attempts == 0:
-            return "You've lost !!!"
+            return f"You've lost !!! Secret word: {self.secret_word}"
         return
 
     def take_turn(self, letter: str) -> Optional[str]:

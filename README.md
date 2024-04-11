@@ -4,7 +4,7 @@ Task:
 Create a Hangman Game (terminal version). https://www.youtube.com/watch?v=leW9ZotUVYo
 
 - Maximum guess attempts: 10.
-- Maximum wrong guess: 6.
+- Maximum wrong guesses: 6.
 - Ability to guess a word or a letter. If a guess is incorrect, user loses 1 life.
 - If user has 0 guesses (lifes) left, game is lost.
 - Ability to guess the word.
@@ -23,6 +23,7 @@ Full task (maximum score 10):
 Create a Hangman Game (GUI/terminal version). https://www.youtube.com/watch?v=leW9ZotUVYo
 
 - Maximum guess attempts: 10.
+- Maximum wrong guesses: 6.
 - Ability to guess a word or a letter. If a guess is incorrect, user loses 1 life.
 - If user has 0 guesses (lifes) left, game is lost. (Give options to see all time results or start new game)
 - Ability to guess the word.

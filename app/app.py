@@ -118,15 +118,28 @@ def play():
     if request.method == "POST":
         letter = request.form["letter"]
         game_result = hangman_game.take_turn(letter)
-        print(game_result)
         if game_result:
-            return render_template("result.html", result=game_result)
+            hangman_pic = hangman_game.wrong_attempts
+            if game_result.startswith("You've lost"):
+                hangman_pic = 0
+            return render_template(
+                "play.html",
+                result=game_result,
+                attempts_left=hangman_game.all_attempts,
+                wrong_attempts_left=hangman_game.wrong_attempts,
+                used_letters=hangman_game.used_letters,
+                hangman_pic=url_for("static", filename=f"hangman/{hangman_pic}.png"),
+            )
+
         return render_template(
             "play.html",
             user_word=hangman_game.display_word(),
             attempts_left=hangman_game.all_attempts,
             wrong_attempts_left=hangman_game.wrong_attempts,
             used_letters=hangman_game.used_letters,
+            hangman_pic=url_for(
+                "static", filename=f"hangman/{hangman_game.wrong_attempts}.png"
+            ),
         )
     elif request.method == "GET":
         hangman_game = create_new_game()
@@ -135,6 +148,7 @@ def play():
             user_word=hangman_game.display_word(),
             attempts_left=hangman_game.all_attempts,
             wrong_attempts_left=hangman_game.wrong_attempts,
+            hangman_pic=url_for("static", filename="hangman/6.png"),
         )
 
 
