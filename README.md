@@ -1,35 +1,36 @@
 
 # HANGMAN
 
-### How to run project
+## How to run project
 
 1. Go to Hangman directory.
 
 2. Create virtual enviroment and run it:
-
+    ```
     python -m venv .venv
     source .venv/Scripts/activate
-
+    ```
 3. Install requirements from requirements.txt file:
-
+    ```
     pip install -r requirements.txt
-
+    ```
 4. Install and run MongoDB on Docker:
-
+    ```
     docker run -d -p 27017:27017 --name example-mongo mongo:latest
-
+    ```
 5. Create words library in MongoDB:
-
+    ```
     python words_generator/mongo_generator.py
-
+    ```
 6. Run application:
-
+    ```
     python app/app.py
-
+    ```
+    
 It will run on http://127.0.0.1:8000
 
 
-### Task requirements
+## Task requirements
 Full task (maximum score 10):
 
 Create a Hangman Game (GUI/terminal version). https://www.youtube.com/watch?v=leW9ZotUVYo
