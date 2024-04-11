@@ -47,3 +47,8 @@ class Hangman:
             return self.get_game_result()
         self.used_letters.append(letter)
         return
+
+    def try_whole_word(self, whole_word: str) -> str:
+        self.user_word = whole_word
+        self.all_attempts = 0
+        return self.get_game_result()

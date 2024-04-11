@@ -114,10 +114,12 @@ hangman_game = create_new_game()
 @app.route("/play", methods=["GET", "POST"])
 def play():
     global hangman_game
-
     if request.method == "POST":
         letter = request.form["letter"]
-        game_result = hangman_game.take_turn(letter)
+        if len(letter) > 1:
+            game_result = hangman_game.try_whole_word(letter)
+        else:
+            game_result = hangman_game.take_turn(letter)
         if game_result:
             hangman_pic = hangman_game.wrong_attempts
             if game_result.startswith("You've lost"):

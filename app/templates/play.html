@@ -3,7 +3,7 @@
 {% block content %}
 
 <h1>Hangman Game</h1>
-<p>{{ user_word }}</p>
+<h5>{{ user_word }}</h5>
 <p>Attempts left: {{ attempts_left }}</p>
 <p>Wrong attempts left: {{ wrong_attempts_left }}</p>
 {% if result %}
@@ -11,12 +11,12 @@
 <p><a href="/play">Play Again</a></p>
 {% else %}
 <form id="hangmanForm" action="/play" method="post">
-    <label for="letter">Enter a letter:</label>
-    <input type="text" id="letter" name="letter" maxlength="1" required>
+    <label for="letter">Enter whole word:</label>
+    <input type="text" id="letter" name="letter">
     <button type="submit" id="submitButton">Submit</button>
 </form>
+<label>Or select letter:</label>
 {% endif %}
-<p></p>
 <div>
     {% for letter in 'abcdefghijklmnopqrstuvwxyz' %}
     {% if letter in used_letters %}
