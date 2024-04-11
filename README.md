@@ -4,6 +4,9 @@
 ## How to run project
 
 1. Go to Hangman directory.
+    ```
+    cd Hangman
+    ```
 
 2. Create virtual enviroment and run it:
     ```
@@ -26,7 +29,7 @@
     ```
     python app/app.py
     ```
-    
+
 It will run on http://127.0.0.1:8000
 
 
