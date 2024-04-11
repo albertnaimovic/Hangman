@@ -52,3 +52,6 @@ class Hangman:
         self.user_word = whole_word
         self.all_attempts = 0
         return self.get_game_result()
+
+
+
