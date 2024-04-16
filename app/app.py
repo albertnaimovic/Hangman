@@ -12,6 +12,11 @@ from flask_login import (
 )
 import forms
 from game_backend import Hangman
+from mongo_database import mongodb_connection, statistics_collection
+from datetime import datetime
+
+# mongodb_connection = MongoDB(host="localhost", port=27017, database_name="hangman")
+# statistics_collection = mongo_db["statistics"]
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
@@ -80,6 +85,7 @@ def log_in():
 
 
 @app.route("/disconnect")
+@login_required
 def disconnect():
     logout_user()
     return redirect(url_for("index"))
@@ -94,17 +100,29 @@ def account():
 @app.route("/statistics")
 @login_required
 def statistics():
-    return render_template(
-        "statistics.html", title="Statistics", response="Cia bus statistika"
-    )
+    query = {"user_id": current_user.id}
+    statistics = mongodb_connection.find_documents(statistics_collection, query)
+    return render_template("statistics.html", title="Statistics", statistics=statistics)
 
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    if current_user.is_authenticated:
+        welcome_message = f"Hi, {current_user.username} !"
+        query = {"user_id": current_user.id}
+        statistics = mongodb_connection.find_documents(statistics_collection, query)
+        games_today = [
+            i for i in statistics if i["created_at"].date() == datetime.today().date()
+        ]
+        return render_template(
+            "index.html", welcome_message=welcome_message, statistics=games_today
+        )
+    else:
+        welcome_message = f"Hi, stranger ! "
+        return render_template("index.html", welcome_message=welcome_message)
 
 
-def create_new_game():
+def create_new_game() -> Hangman:
     return Hangman()
 
 
@@ -112,18 +130,31 @@ hangman_game = create_new_game()
 
 
 @app.route("/play", methods=["GET", "POST"])
+@login_required
 def play():
     global hangman_game
     if request.method == "POST":
         letter = request.form["letter"]
         if len(letter) > 1:
-            game_result = hangman_game.try_whole_word(letter)
+            game_result = hangman_game.try_full_word(letter)
         else:
             game_result = hangman_game.take_turn(letter)
         if game_result:
             hangman_pic = hangman_game.wrong_attempts
             if game_result.startswith("You've lost"):
                 hangman_pic = 0
+                game_status = "LOSS"
+            else:
+                game_status = "WIN"
+            document = {
+                "game_status": game_status,
+                "attempts_made": 10 - hangman_game.all_attempts,
+                "wrong_attempts_made": 6 - hangman_game.wrong_attempts,
+                "secret_word": hangman_game.secret_word,
+                "user_id": current_user.id,
+                "created_at": datetime.now(),
+            }
+            mongodb_connection.insert_document(statistics_collection, document)
             return render_template(
                 "play.html",
                 result=game_result,

@@ -1,5 +1,5 @@
 from typing import Optional
-from mongo_db import collection
+from mongo_database import random_words_collection
 from random import choice
 
 
@@ -9,10 +9,10 @@ class Hangman:
         self.wrong_attempts = 6
         self.all_attempts = 10
         self.user_word = "_" * len(self.secret_word)
-        self.used_letters = []
+        self.used_letters = [""]
 
     def get_secret_word(self) -> str:
-        response = collection.find({}, {"_id": 0})
+        response = random_words_collection.find({}, {"_id": 0})
         words_list = [x["word"] for x in response]
         return choice(words_list)
 
@@ -48,10 +48,7 @@ class Hangman:
         self.used_letters.append(letter)
         return
 
-    def try_whole_word(self, whole_word: str) -> str:
-        self.user_word = whole_word
+    def try_full_word(self, full_word: str) -> str:
+        self.user_word = full_word
         self.all_attempts = 0
         return self.get_game_result()
-
-
-

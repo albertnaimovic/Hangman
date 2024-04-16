@@ -7,7 +7,6 @@
     ```
     cd Hangman
     ```
-
 2. Create virtual enviroment and run it:
     ```
     python -m venv .venv
@@ -23,7 +22,7 @@
     ```
 5. Create words library in MongoDB:
     ```
-    python words_generator/mongo_generator.py
+    python app/mongo_generator.py
     ```
 6. Run application:
     ```
@@ -45,16 +44,16 @@ Create a Hangman Game (GUI/terminal version). https://www.youtube.com/watch?v=le
 - Ability to guess the word.
 
 REQUIREMENTS: 
-● Create a new GITHUB project, virtual env, README, .gitignore, etc.
-● Use OOP structures (classes, inheritance, dataclasses, modules) to construct game backend logic.
-● For a front end part you can use CLI, but Flask applicaton is preferible. 
-● Create user registration (name,surname, email),store it using SQL database.
-● Use Mongo DB to store all necessary game data.
-● At least one of the system part (front-end/back end) should be dockerized.
-● Use type annotations, error handling thoughout the code.
-● Use a logging library to log out information (terminal and files).
-● Unit tests to cover most important functionality.
-● After the game session, show a table with user information: games played today , games won/lost today, guesses made.
+- Create a new GITHUB project, virtual env, README, .gitignore, etc.
+- Use OOP structures (classes, inheritance, dataclasses, modules) to construct game backend logic.
+- For a front end part you can use CLI, but Flask applicaton is preferible. 
+- Create user registration (name,surname, email),store it using SQL database.
+- Use Mongo DB to store all necessary game data.
+- At least one of the system part (front-end/back end) should be dockerized.
+- Use type annotations, error handling thoughout the code.
+- Use a logging library to log out information (terminal and files).
+- Unit tests to cover most important functionality.
+- After the game session, show a table with user information: games played today , games won/lost today, guesses made.
 
  
 Nice to have:

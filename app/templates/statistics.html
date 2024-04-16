@@ -2,13 +2,59 @@
 
 {% block content %}
 
-<h1>There is {{current_user.username}} statistics</h1>
+<h1>{{ current_user.username }} statistics</h1>
 
-<ol>
-    {% for i in response %}
-    <li>{{ i }} </li>
+{% if statistics %}
+<table>
+    <tr style="background-color: rgba(2, 2, 0, 0.212);">
+        <th>Game</th>
+        <th>Status</th>
+        <th>Attempts made</th>
+        <th>Wrong attempts made</th>
+        <th>Secret word</th>
+        <th>Date and time</th>
+    </tr>
+    {% for i in statistics %}
+    <tr>
+        <td style="font-weight: bold;">
+        </td>
+        <td {% if i["game_status"]=="WIN" %} style="background-color: rgba(0, 189, 0, 0.527);" {% elif
+            i["game_status"]=="LOSS" %} style="background-color: rgba(255, 0, 0, 0.473);" {% endif %}>{{
+            i["game_status"] }}</td>
+        <td>{{ i["attempts_made"] }}</td>
+        <td>{{ i["wrong_attempts_made"] }}</td>
+        <td>{{ i["secret_word"] }}</td>
+        <td>{{ (i["created_at"]).strftime("%Y-%m-%d %H:%M:%S") }}</td>
+    </tr>
     {% endfor %}
-</ol>
+</table>
+{% else %}
+<h3>Play a game first !!</h3>
+{% endif %}
+<style>
+    table {
+        counter-reset: rowNumber;
+    }
 
+    table tr>td:first-child {
+        counter-increment: rowNumber;
+    }
+
+    table tr td:first-child::before {
+        content: counter(rowNumber);
+    }
+
+    table,
+    th,
+    td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+
+    td {
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
 
 {% endblock %}
