@@ -1,4 +1,5 @@
 import os
+from sqlalchemy.exc import IntegrityError
 from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -15,8 +16,6 @@ from game_backend import Hangman
 from mongo_database import mongodb_connection, statistics_collection
 from datetime import datetime
 
-# mongodb_connection = MongoDB(host="localhost", port=27017, database_name="hangman")
-# statistics_collection = mongo_db["statistics"]
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
@@ -61,10 +60,20 @@ def register():
             email=form.email.data,
             password=hashed_password,
         )
-        sql_db.session.add(user)
-        sql_db.session.commit()
-        flash("You've registered successfully !", "success")
-        return redirect(url_for("index"))
+        try:
+            sql_db.session.add(user)
+            sql_db.session.commit()
+            flash("You've registered successfully !", "success")
+            return redirect(url_for("index"))
+        except IntegrityError as err:
+            sql_db.session.rollback()
+            print(err)
+            if "users.username" in str(err):
+                flash("Username already exists.", "danger")
+            elif "users.email" in str(err):
+                flash("Email already exists.", "danger")
+            else:
+                flash("An error occurred. Please try again.", "danger")
     return render_template("register.html", title="Register", form=form)
 
 
@@ -186,5 +195,5 @@ def play():
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=8000, debug=True)
+    app.run(host="127.0.0.1", port=5000, debug=True)
     sql_db.create_all()

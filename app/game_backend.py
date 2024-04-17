@@ -1,7 +1,7 @@
 from typing import Optional
 from mongo_database import random_words_collection
 from random import choice
-
+from pymongo.errors import PyMongoError
 
 class Hangman:
     def __init__(self) -> None:
@@ -12,7 +12,10 @@ class Hangman:
         self.used_letters = [""]
 
     def get_secret_word(self) -> str:
-        response = random_words_collection.find({}, {"_id": 0})
+        try:
+            response = random_words_collection.find({}, {"_id": 0})
+        except PyMongoError as err:
+            print(f"An error occured: {err}")
         words_list = [x["word"] for x in response]
         return choice(words_list)
 

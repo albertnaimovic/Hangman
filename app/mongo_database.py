@@ -22,16 +22,16 @@ class MongoDB(MongoConnect):
         database = client[self.database_name]
         return database
 
-    def insert_document(self, collection: Collection, document: Dict) -> str:
+    @staticmethod
+    def insert_document(collection: Collection, document: Dict) -> str:
         try:
             result = collection.insert_one(document)
             return str(result.inserted_id)
         except PyMongoError as err:
             print(f"An error occured: {err}")
 
-    def find_documents(
-        self, collection: Collection, query: Dict
-    ) -> Optional[List[Dict]]:
+    @staticmethod
+    def find_documents(collection: Collection, query: Dict) -> Optional[List[Dict]]:
         try:
             documents = collection.find(query, {"_id": 0})
             return list(documents)
@@ -45,5 +45,3 @@ mongo_db = mongodb_connection.connect_to_mongodb()
 
 random_words_collection = mongo_db["random_words"]
 statistics_collection = mongo_db["statistics"]
-
-
