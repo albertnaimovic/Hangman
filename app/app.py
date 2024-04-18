@@ -1,6 +1,5 @@
 import os
-from pymongo.collection import Collection
-from mongo_db import collection
+from sqlalchemy.exc import IntegrityError
 from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -13,6 +12,10 @@ from flask_login import (
     login_required,
 )
 import forms
+from game_backend import Hangman
+from mongo_database import mongodb_connection, statistics_collection
+from datetime import datetime
+
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
@@ -57,10 +60,20 @@ def register():
             email=form.email.data,
             password=hashed_password,
         )
-        sql_db.session.add(user)
-        sql_db.session.commit()
-        flash("You've registered successfully !", "success")
-        return redirect(url_for("index"))
+        try:
+            sql_db.session.add(user)
+            sql_db.session.commit()
+            flash("You've registered successfully !", "success")
+            return redirect(url_for("index"))
+        except IntegrityError as err:
+            sql_db.session.rollback()
+            print(err)
+            if "users.username" in str(err):
+                flash("Username already exists.", "danger")
+            elif "users.email" in str(err):
+                flash("Email already exists.", "danger")
+            else:
+                flash("An error occurred. Please try again.", "danger")
     return render_template("register.html", title="Register", form=form)
 
 
@@ -81,6 +94,7 @@ def log_in():
 
 
 @app.route("/disconnect")
+@login_required
 def disconnect():
     logout_user()
     return redirect(url_for("index"))
@@ -95,16 +109,91 @@ def account():
 @app.route("/statistics")
 @login_required
 def statistics():
-    query = {}
-    response = collection.find(query, {"_id": 0})
-    return render_template("statistics.html", title="Statistics", response=response)
+    query = {"user_id": current_user.id}
+    statistics = mongodb_connection.find_documents(statistics_collection, query)
+    return render_template("statistics.html", title="Statistics", statistics=statistics)
 
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    if current_user.is_authenticated:
+        welcome_message = f"Hi, {current_user.username} !"
+        query = {"user_id": current_user.id}
+        statistics = mongodb_connection.find_documents(statistics_collection, query)
+        games_today = [
+            i for i in statistics if i["created_at"].date() == datetime.today().date()
+        ]
+        return render_template(
+            "index.html", welcome_message=welcome_message, statistics=games_today
+        )
+    else:
+        welcome_message = f"Hi, stranger ! "
+        return render_template("index.html", welcome_message=welcome_message)
+
+
+def create_new_game() -> Hangman:
+    return Hangman()
+
+
+hangman_game = create_new_game()
+
+
+@app.route("/play", methods=["GET", "POST"])
+@login_required
+def play():
+    global hangman_game
+    if request.method == "POST":
+        letter = request.form["letter"]
+        if len(letter) > 1:
+            game_result = hangman_game.try_full_word(letter)
+        else:
+            game_result = hangman_game.take_turn(letter)
+        if game_result:
+            hangman_pic = hangman_game.wrong_attempts
+            if game_result.startswith("You've lost"):
+                hangman_pic = 0
+                game_status = "LOSS"
+            else:
+                game_status = "WIN"
+            document = {
+                "game_status": game_status,
+                "attempts_made": 10 - hangman_game.all_attempts,
+                "wrong_attempts_made": 6 - hangman_game.wrong_attempts,
+                "secret_word": hangman_game.secret_word,
+                "user_id": current_user.id,
+                "created_at": datetime.now(),
+            }
+            mongodb_connection.insert_document(statistics_collection, document)
+            return render_template(
+                "play.html",
+                result=game_result,
+                attempts_left=hangman_game.all_attempts,
+                wrong_attempts_left=hangman_game.wrong_attempts,
+                used_letters=hangman_game.used_letters,
+                hangman_pic=url_for("static", filename=f"hangman/{hangman_pic}.png"),
+            )
+
+        return render_template(
+            "play.html",
+            user_word=hangman_game.display_word(),
+            attempts_left=hangman_game.all_attempts,
+            wrong_attempts_left=hangman_game.wrong_attempts,
+            used_letters=hangman_game.used_letters,
+            hangman_pic=url_for(
+                "static", filename=f"hangman/{hangman_game.wrong_attempts}.png"
+            ),
+        )
+    elif request.method == "GET":
+        hangman_game = create_new_game()
+        return render_template(
+            "play.html",
+            user_word=hangman_game.display_word(),
+            attempts_left=hangman_game.all_attempts,
+            wrong_attempts_left=hangman_game.wrong_attempts,
+            hangman_pic=url_for("static", filename="hangman/6.png"),
+        )
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=8000, debug=True)
+    app.run(host="127.0.0.1", port=5000, debug=True)
     sql_db.create_all()

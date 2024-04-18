@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Hangman Game</h1>
+<h5>{{ user_word }}</h5>
+<p>Attempts left: {{ attempts_left }}</p>
+<p>Wrong attempts left: {{ wrong_attempts_left }}</p>
+{% if result %}
+<h3>{{ result }}</h3>
+<p><a href="/play">Play Again</a></p>
+{% else %}
+<form id="hangmanForm" action="/play" method="post">
+    <label for="letter">Enter full word:</label>
+    <input type="text" id="letter" name="letter">
+    <button type="submit" id="submitButton">Submit</button>
+</form>
+<label>Or select letter:</label>
+{% endif %}
+<div>
+    {% for letter in 'abcdefghijklmnopqrstuvwxyz' %}
+    {% if letter in used_letters %}
+    <button class="used letterButton">{{ letter }}</button>
+    {% else %}
+    <button class="unused letterButton">{{ letter }}</button>
+    {% endif %}
+    {% endfor %}
+</div>
+
+
+<img src="{{ hangman_pic }}">
+
+
+
+<style>
+    .used {
+        background-color: red;
+        color: white;
+    }
+</style>
+
+<script>
+    // sita pats susigooglinau
+    document.getElementById("letter").focus();
+    document.getElementById("letter").select();
+
+
+    // o su situo padejo chatGPT nes tiek man jau per daug :) 
+    var letterButtons = document.getElementsByClassName("letterButton");
+    for (var i = 0; i < letterButtons.length; i++) {
+        letterButtons[i].addEventListener("click", function () {
+            var letter = this.textContent;
+            document.getElementById("letter").value = letter;
+            document.getElementById("submitButton").click();
+        });
+    }
+</script>
+
+{% endblock %}

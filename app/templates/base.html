@@ -26,7 +26,7 @@
 
         body {
             /* background-color: #666666; */
-            background-image: url('https://www.desktopbackground.org/download/o/2011/06/24/223779_wallpapers-notebook-paper-here-s-another-looks-like-a-sheet-of_1920x1080_h.jpg');
+            background-image: url("static/hangman_background.jpg");
             background-repeat: no-repeat;
             background-attachment: fixed;
             background-size: cover;
@@ -59,13 +59,13 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav ml-auto">
+                    {% if current_user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="/">Home</a>
+                        <a class="nav-link" href="/play">Play</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link">|</a>
                     </li>
-                    {% if current_user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link" href="/statistics">Statistics</a>
                     </li>
