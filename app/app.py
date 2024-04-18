@@ -15,6 +15,12 @@ import forms
 from game_backend import Hangman
 from mongo_database import mongodb_connection, statistics_collection
 from datetime import datetime
+import logging
+import logging.config
+
+
+logging.config.fileConfig("logging.conf")
+logger = logging.getLogger("Log")
 
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -63,16 +69,18 @@ def register():
         try:
             sql_db.session.add(user)
             sql_db.session.commit()
+            logging.info(f"User {user.username} has been created.")
             flash("You've registered successfully !", "success")
             return redirect(url_for("index"))
         except IntegrityError as err:
             sql_db.session.rollback()
-            print(err)
+            logging.error(err)
             if "users.username" in str(err):
                 flash("Username already exists.", "danger")
             elif "users.email" in str(err):
                 flash("Email already exists.", "danger")
             else:
+                logging.error("An error occured on register")
                 flash("An error occurred. Please try again.", "danger")
     return render_template("register.html", title="Register", form=form)
 
@@ -87,8 +95,10 @@ def log_in():
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember_me.data)
             next_page = request.args.get("next")
+            logging.info(f"User {user.username} logged in.")
             return redirect(next_page) if next_page else redirect(url_for("index"))
         else:
+            logging.info(f"User {user.username} entered wrong password.")
             flash("Login failed. Check your email/password.", "danger")
     return render_template("log_in.html", title="Log in", form=form)
 
@@ -155,6 +165,9 @@ def play():
                 game_status = "LOSS"
             else:
                 game_status = "WIN"
+            logging.info(
+                f"user {current_user.username} ended game with status {game_status}"
+            )
             document = {
                 "game_status": game_status,
                 "attempts_made": 10 - hangman_game.all_attempts,
@@ -185,6 +198,7 @@ def play():
         )
     elif request.method == "GET":
         hangman_game = create_new_game()
+        logging.info(f"user {current_user.username} started a new game.")
         return render_template(
             "play.html",
             user_word=hangman_game.display_word(),

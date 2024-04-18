@@ -12,7 +12,7 @@
 {% else %}
 <form id="hangmanForm" action="/play" method="post">
     <label for="letter">Enter full word:</label>
-    <input type="text" id="letter" name="letter">
+    <input type="text" pattern="[a-z]*" id="letter" name="letter">
     <button type="submit" id="submitButton">Submit</button>
 </form>
 <label>Or select letter:</label>
