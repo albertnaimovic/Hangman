@@ -1,6 +1,6 @@
 import os
 from sqlalchemy.exc import IntegrityError
-from flask import Flask, render_template, redirect, url_for, flash, request
+from flask import Flask, render_template, redirect, url_for, flash, session, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import (
@@ -145,19 +145,22 @@ def create_new_game() -> Hangman:
     return Hangman()
 
 
-hangman_game = create_new_game()
-
-
 @app.route("/play", methods=["GET", "POST"])
 @login_required
 def play():
-    global hangman_game
+
     if request.method == "POST":
+        hangman_game_json = session.get("hangman_game")
+        hangman_game = Hangman.from_json(hangman_game_json)
+
         letter = request.form["letter"]
         if len(letter) > 1:
             game_result = hangman_game.try_full_word(letter)
         else:
             game_result = hangman_game.take_turn(letter)
+
+        session["hangman_game"] = hangman_game.to_json()
+
         if game_result:
             hangman_pic = hangman_game.wrong_attempts
             if game_result.startswith("You've lost"):
@@ -198,6 +201,7 @@ def play():
         )
     elif request.method == "GET":
         hangman_game = create_new_game()
+        session["hangman_game"] = hangman_game.to_json()
         logging.info(f"user {current_user.username} started a new game.")
         return render_template(
             "play.html",

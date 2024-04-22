@@ -1,4 +1,3 @@
-one_word = ["coding"]
 words_list = [
     "sympathy",
     "airport",
