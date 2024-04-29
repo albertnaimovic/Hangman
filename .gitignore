@@ -2,3 +2,4 @@
 __pycache__/
 hangman_sqlite.db
 Dockerfile
+hangman_combined.log

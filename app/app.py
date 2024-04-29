@@ -1,6 +1,7 @@
 import os
 from sqlalchemy.exc import IntegrityError
-from flask import Flask, render_template, redirect, url_for, flash, request
+from sqlalchemy.orm import sessionmaker
+from flask import Flask, render_template, redirect, url_for, flash, session, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import (
@@ -15,6 +16,12 @@ import forms
 from game_backend import Hangman
 from mongo_database import mongodb_connection, statistics_collection
 from datetime import datetime
+import logging
+import logging.config
+
+
+logging.config.fileConfig("logging.conf")
+logger = logging.getLogger("Log")
 
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -63,16 +70,18 @@ def register():
         try:
             sql_db.session.add(user)
             sql_db.session.commit()
+            logging.info(f"User {user.username} has been created.")
             flash("You've registered successfully !", "success")
             return redirect(url_for("index"))
         except IntegrityError as err:
             sql_db.session.rollback()
-            print(err)
+            logging.error(err)
             if "users.username" in str(err):
                 flash("Username already exists.", "danger")
             elif "users.email" in str(err):
                 flash("Email already exists.", "danger")
             else:
+                logging.error("An error occured on register")
                 flash("An error occurred. Please try again.", "danger")
     return render_template("register.html", title="Register", form=form)
 
@@ -87,8 +96,10 @@ def log_in():
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember_me.data)
             next_page = request.args.get("next")
+            logging.info(f"User {user.username} logged in.")
             return redirect(next_page) if next_page else redirect(url_for("index"))
         else:
+            logging.info(f"User {user.username} entered wrong password.")
             flash("Login failed. Check your email/password.", "danger")
     return render_template("log_in.html", title="Log in", form=form)
 
@@ -104,6 +115,32 @@ def disconnect():
 @login_required
 def account():
     return render_template("account.html", title="Account")
+
+
+@app.route("/top10")
+def top10():
+    users = Users.query.all()
+    user_dict = {user.id: user.username for user in users}
+    top_ten_query = [
+        {
+            "$group": {
+                "_id": "$user_id",
+                "Total games": {"$sum": 1},
+                "Games won": {
+                    "$sum": {"$cond": [{"$eq": ["$game_status", "WIN"]}, 1, 0]}
+                },
+                "Games lost": {
+                    "$sum": {"$cond": [{"$eq": ["$game_status", "LOSS"]}, 1, 0]}
+                },
+            }
+        },
+        {"$sort": {"Games won": -1}},
+        {"$limit": 10},
+    ]
+    statistics = list(statistics_collection.aggregate(top_ten_query))
+    return render_template(
+        "top10.html", title="Top10", statistics=statistics, user_dict=user_dict
+    )
 
 
 @app.route("/statistics")
@@ -135,19 +172,22 @@ def create_new_game() -> Hangman:
     return Hangman()
 
 
-hangman_game = create_new_game()
-
-
 @app.route("/play", methods=["GET", "POST"])
 @login_required
 def play():
-    global hangman_game
+
     if request.method == "POST":
+        hangman_game_json = session.get("hangman_game")
+        hangman_game = Hangman.from_json(hangman_game_json)
+
         letter = request.form["letter"]
         if len(letter) > 1:
             game_result = hangman_game.try_full_word(letter)
         else:
             game_result = hangman_game.take_turn(letter)
+
+        session["hangman_game"] = hangman_game.to_json()
+
         if game_result:
             hangman_pic = hangman_game.wrong_attempts
             if game_result.startswith("You've lost"):
@@ -155,6 +195,9 @@ def play():
                 game_status = "LOSS"
             else:
                 game_status = "WIN"
+            logging.info(
+                f"user {current_user.username} ended game with status {game_status}"
+            )
             document = {
                 "game_status": game_status,
                 "attempts_made": 10 - hangman_game.all_attempts,
@@ -185,6 +228,8 @@ def play():
         )
     elif request.method == "GET":
         hangman_game = create_new_game()
+        session["hangman_game"] = hangman_game.to_json()
+        logging.info(f"user {current_user.username} started a new game.")
         return render_template(
             "play.html",
             user_word=hangman_game.display_word(),

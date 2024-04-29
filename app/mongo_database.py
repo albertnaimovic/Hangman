@@ -4,6 +4,12 @@ from pymongo import MongoClient
 from pymongo.database import Database
 from pymongo.errors import PyMongoError
 from pymongo.collection import Collection
+import logging
+import logging.config
+
+
+logging.config.fileConfig("logging.conf")
+logger = logging.getLogger("Log")
 
 
 @dataclass
@@ -28,7 +34,7 @@ class MongoDB(MongoConnect):
             result = collection.insert_one(document)
             return str(result.inserted_id)
         except PyMongoError as err:
-            print(f"An error occured: {err}")
+            logging.error(f"An error occured: {err}")
 
     @staticmethod
     def find_documents(collection: Collection, query: Dict) -> Optional[List[Dict]]:
@@ -36,7 +42,9 @@ class MongoDB(MongoConnect):
             documents = collection.find(query, {"_id": 0})
             return list(documents)
         except PyMongoError as err:
-            print(f"An error occured: {err}")
+            logging.error(f"An error occured: {err}")
+
+
 
 
 mongodb_connection = MongoDB(host="localhost", port=27017, database_name="hangman")

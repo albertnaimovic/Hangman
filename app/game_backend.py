@@ -2,6 +2,13 @@ from typing import Optional
 from mongo_database import random_words_collection
 from random import choice
 from pymongo.errors import PyMongoError
+import logging
+import logging.config
+
+
+logging.config.fileConfig("logging.conf")
+logger = logging.getLogger("Log")
+
 
 class Hangman:
     def __init__(self) -> None:
@@ -11,11 +18,30 @@ class Hangman:
         self.user_word = "_" * len(self.secret_word)
         self.used_letters = [""]
 
+    def to_json(self) -> dict:
+        return {
+            "secret_word": self.secret_word,
+            "wrong_attempts": self.wrong_attempts,
+            "all_attempts": self.all_attempts,
+            "user_word": self.user_word,
+            "used_letters": self.used_letters,
+        }
+
+    @classmethod
+    def from_json(cls, json_data: dict) -> "Hangman":
+        hangman_instance = cls()
+        hangman_instance.secret_word = json_data["secret_word"]
+        hangman_instance.wrong_attempts = json_data["wrong_attempts"]
+        hangman_instance.all_attempts = json_data["all_attempts"]
+        hangman_instance.user_word = json_data["user_word"]
+        hangman_instance.used_letters = json_data["used_letters"]
+        return hangman_instance
+
     def get_secret_word(self) -> str:
         try:
             response = random_words_collection.find({}, {"_id": 0})
         except PyMongoError as err:
-            print(f"An error occured: {err}")
+            logging.error(f"An error occured: {err}")
         words_list = [x["word"] for x in response]
         return choice(words_list)
 
