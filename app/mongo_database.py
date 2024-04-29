@@ -45,6 +45,8 @@ class MongoDB(MongoConnect):
             logging.error(f"An error occured: {err}")
 
 
+
+
 mongodb_connection = MongoDB(host="localhost", port=27017, database_name="hangman")
 
 mongo_db = mongodb_connection.connect_to_mongodb()

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Top 10 players</h1>
+
+{% if statistics %}
+
+
+
+<table>
+    <tr style="background-color: rgba(2, 2, 0, 0.212);">
+        <th>#</th>
+        <th>Player</th>
+        <th>Total games</th>
+        <th>Games won</th>
+        <th>Games lost</th>
+    </tr>
+    {% for i in statistics %}
+    <tr>
+        <td style="font-weight: bold;">
+        </td>
+        <td>{{ user_dict[i["_id"]] }}</td>
+        <td>{{ i["Total games"] }}</td>
+        <td>{{ i["Games won"] }}</td>
+        <td>{{ i["Games lost"] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+
+{% endif %}
+<style>
+    table {
+        counter-reset: rowNumber;
+    }
+
+    table tr>td:first-child {
+        counter-increment: rowNumber;
+    }
+
+    table tr td:first-child::before {
+        content: counter(rowNumber);
+    }
+
+    table,
+    th,
+    td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+
+    td {
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
+
+{% endblock %}

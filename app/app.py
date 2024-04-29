@@ -1,5 +1,6 @@
 import os
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import sessionmaker
 from flask import Flask, render_template, redirect, url_for, flash, session, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -114,6 +115,32 @@ def disconnect():
 @login_required
 def account():
     return render_template("account.html", title="Account")
+
+
+@app.route("/top10")
+def top10():
+    users = Users.query.all()
+    user_dict = {user.id: user.username for user in users}
+    top_ten_query = [
+        {
+            "$group": {
+                "_id": "$user_id",
+                "Total games": {"$sum": 1},
+                "Games won": {
+                    "$sum": {"$cond": [{"$eq": ["$game_status", "WIN"]}, 1, 0]}
+                },
+                "Games lost": {
+                    "$sum": {"$cond": [{"$eq": ["$game_status", "LOSS"]}, 1, 0]}
+                },
+            }
+        },
+        {"$sort": {"Games won": -1}},
+        {"$limit": 10},
+    ]
+    statistics = list(statistics_collection.aggregate(top_ten_query))
+    return render_template(
+        "top10.html", title="Top10", statistics=statistics, user_dict=user_dict
+    )
 
 
 @app.route("/statistics")
