@@ -1,18 +1,7 @@
-import os
 import forms
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import sessionmaker
-from flask import Flask, render_template, redirect, url_for, flash, session, request
-from flask_sqlalchemy import SQLAlchemy
-from flask_bcrypt import Bcrypt
-from flask_login import (
-    LoginManager,
-    current_user,
-    logout_user,
-    login_user,
-    UserMixin,
-    login_required,
-)
+from flask import render_template, redirect, url_for, flash, session, request
+from flask_login import current_user, logout_user, login_user, login_required
 from game_backend import Hangman
 from mongo_database import (
     mongodb_connection,
@@ -24,33 +13,11 @@ from mongo_generator import random_words_generator
 from words_list import words_list
 import logging
 import logging.config
-
+from models.user_table import Users
+from entities import app, sql_db, bcrypt, login_manager
 
 logging.config.fileConfig("logging.conf")
 logger = logging.getLogger("Log")
-
-
-basedir = os.path.abspath(os.path.dirname(__file__))
-app = Flask(__name__)
-app.config["SECRET_KEY"] = "4654f5dfadsrfasdr54e6rae"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(
-    basedir, "hangman_sqlite.db"
-)
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-sql_db = SQLAlchemy(app)
-
-bcrypt = Bcrypt(app)
-login_manager = LoginManager(app)
-login_manager.login_view = "log_in"
-login_manager.login_message_category = "info"
-
-
-class Users(sql_db.Model, UserMixin):
-    __tablename__ = "users"
-    id = sql_db.Column(sql_db.Integer, primary_key=True)
-    username = sql_db.Column(sql_db.String(20), unique=True, nullable=False)
-    email = sql_db.Column(sql_db.String(120), unique=True, nullable=False)
-    password = sql_db.Column(sql_db.String(60), unique=True, nullable=False)
 
 
 @login_manager.user_loader

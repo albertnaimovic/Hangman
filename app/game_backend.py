@@ -53,12 +53,11 @@ class Hangman:
         for i in indices:
             self.user_word = self.user_word[:i] + letter + self.user_word[i + 1 :]
 
-    def get_game_result(self) -> Optional[str]:
+    def get_game_result(self) -> str:
         if self.secret_word == self.user_word:
             return f"You've won !!! Secret word: {self.secret_word}"
         elif self.all_attempts == 0 or self.wrong_attempts == 0:
             return f"You've lost !!! Secret word: {self.secret_word}"
-        return
 
     def take_turn(self, letter: str) -> Optional[str]:
         if letter not in self.secret_word and letter not in self.used_letters:
