@@ -20,16 +20,12 @@
     ```
     docker run -d -p 27017:27017 --name example-mongo mongo:latest
     ```
-5. Create words library in MongoDB:
-    ```
-    python app/mongo_generator.py
-    ```
-6. Run application:
+5. Run application:
     ```
     python app/app.py
     ```
 
-It will run on http://127.0.0.1:8000
+It will run on http://127.0.0.1:5000
 
 
 ## Task requirements
