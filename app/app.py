@@ -1,4 +1,5 @@
 import os
+import forms
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 from flask import Flask, render_template, redirect, url_for, flash, session, request
@@ -12,10 +13,15 @@ from flask_login import (
     UserMixin,
     login_required,
 )
-import forms
 from game_backend import Hangman
-from mongo_database import mongodb_connection, statistics_collection
+from mongo_database import (
+    mongodb_connection,
+    statistics_collection,
+    random_words_collection,
+)
 from datetime import datetime
+from mongo_generator import random_words_generator
+from words_list import words_list
 import logging
 import logging.config
 
@@ -240,5 +246,9 @@ def play():
 
 
 if __name__ == "__main__":
+    random_words = mongodb_connection.find_documents(random_words_collection, {})
+    if not random_words:
+        random_words_generator(words_list)
+        logging.info("Creating random_words collection")
     app.run(host="127.0.0.1", port=5000, debug=True)
     sql_db.create_all()
